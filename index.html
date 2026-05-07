@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FY26 Loss Performance & Target Variance</title>
+  <script src="https://cdn.plot.ly/plotly-2.35.0.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1a1f36;
+      --accent: #4f46e5;
+      --accent-light: #818cf8;
+      --danger: #ef4444;
+      --danger-light: #fef2f2;
+      --warning: #f59e0b;
+      --warning-light: #fffbeb;
+      --success: #10b981;
+      --success-light: #ecfdf5;
+      --surface: #ffffff;
+      --bg: #f1f5f9;
+      --text: #1e293b;
+      --text-secondary: #64748b;
+      --border: #e2e8f0;
+      --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,.07), 0 2px 4px -2px rgba(0,0,0,.05);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.08), 0 4px 6px -4px rgba(0,0,0,.04);
+      --radius: 12px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(135deg, #1a1f36 0%, #312e81 50%, #4f46e5 100%);
+      color: white;
+      padding: 60px 40px 50px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(129,140,248,.15) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -40%;
+      left: -10%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(99,102,241,.12) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .hero-content { max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(255,255,255,.12);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,.15);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+    }
+    .hero-subtitle {
+      font-size: 16px;
+      opacity: .75;
+      max-width: 700px;
+      line-height: 1.7;
+    }
+    .hero-meta {
+      margin-top: 24px;
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+    .hero-meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .hero-meta-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; opacity: .5; }
+    .hero-meta-value { font-size: 18px; font-weight: 700; }
+
+    /* Container */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+    /* Section */
+    .section {
+      padding: 48px 0;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .section-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .section-icon.blue { background: #eef2ff; color: var(--accent); }
+    .section-icon.red { background: var(--danger-light); color: var(--danger); }
+    .section-icon.amber { background: var(--warning-light); color: var(--warning); }
+    .section-icon.green { background: var(--success-light); color: var(--success); }
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .section-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+    .divider {
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* KPI Row */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+    .kpi-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      transition: transform .15s, box-shadow .15s;
+    }
+    .kpi-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .kpi-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    .kpi-value {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.1;
+    }
+    .kpi-sub {
+      font-size: 13px;
+      margin-top: 8px;
+      font-weight: 500;
+    }
+    .kpi-sub.danger { color: var(--danger); }
+    .kpi-sub.success { color: var(--success); }
+    .kpi-sub.warning { color: var(--warning); }
+    .kpi-sub.muted { color: var(--text-secondary); }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Grid layouts */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+    /* Tables */
+    .data-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+    }
+    .data-table thead th {
+      background: #f8fafc;
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--text-secondary);
+      border-bottom: 2px solid var(--border);
+    }
+    .data-table thead th:first-child { border-radius: 8px 0 0 0; }
+    .data-table thead th:last-child { border-radius: 0 8px 0 0; }
+    .data-table tbody td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: top;
+    }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover { background: #fafbfd; }
+    .data-table .num { font-variant-numeric: tabular-nums; font-weight: 600; }
+    .data-table .highlight { color: var(--danger); font-weight: 700; }
+    .data-table .good { color: var(--success); font-weight: 700; }
+
+    /* Driver cards */
+    .driver-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .driver-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 22px 24px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--danger);
+      transition: transform .15s;
+    }
+    .driver-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+    .driver-card.amber { border-left-color: var(--warning); }
+    .driver-card .driver-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    .driver-card .driver-name {
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .driver-card .driver-impact {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--danger);
+      background: var(--danger-light);
+      padding: 3px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+    .driver-card.amber .driver-impact {
+      color: #92400e;
+      background: var(--warning-light);
+    }
+    .driver-card .driver-period {
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    .driver-card .driver-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* Initiative tables */
+    .initiative-section { margin-bottom: 24px; }
+    .initiative-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .init-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+      background: var(--surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+    .init-table thead th {
+      background: #f8fafc;
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--text-secondary);
+      border-bottom: 2px solid var(--border);
+    }
+    .init-table tbody td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .init-table tbody tr:last-child td { border-bottom: none; }
+    .init-table .savings { color: var(--success); font-weight: 700; }
+
+    /* Tags */
+    .tag {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .tag-red { background: #fef2f2; color: #dc2626; }
+    .tag-amber { background: #fffbeb; color: #d97706; }
+    .tag-green { background: #ecfdf5; color: #059669; }
+    .tag-blue { background: #eef2ff; color: #4f46e5; }
+    .tag-gray { background: #f1f5f9; color: #64748b; }
+
+    /* Callout */
+    .callout {
+      background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+      border: 1px solid #c7d2fe;
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-top: 16px;
+    }
+    .callout-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    .callout-body {
+      font-size: 13px;
+      color: #3730a3;
+      line-height: 1.7;
+    }
+    .callout.warning {
+      background: linear-gradient(135deg, #fffbeb, #fef3c7);
+      border-color: #fcd34d;
+    }
+    .callout.warning .callout-title { color: #92400e; }
+    .callout.warning .callout-body { color: #78350f; }
+    .callout.danger {
+      background: linear-gradient(135deg, #fef2f2, #fee2e2);
+      border-color: #fca5a5;
+    }
+    .callout.danger .callout-title { color: #dc2626; }
+    .callout.danger .callout-body { color: #991b1b; }
+
+    /* Chart containers */
+    .chart-container {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+    .chart-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    /* Strategic FY27 */
+    .strategy-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .strategy-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--accent);
+      text-align: center;
+      transition: transform .15s;
+    }
+    .strategy-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .strategy-card .s-icon {
+      width: 48px;
+      height: 48px;
+      background: #eef2ff;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin: 0 auto 12px;
+    }
+    .strategy-card .s-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .strategy-card .s-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* Notes */
+    .notes-section {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-top: 8px;
+    }
+    .notes-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+    }
+    .notes-section ul {
+      list-style: none;
+      padding: 0;
+    }
+    .notes-section li {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      padding-left: 16px;
+      position: relative;
+      margin-bottom: 6px;
+    }
+    .notes-section li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      width: 6px;
+      height: 6px;
+      background: var(--border);
+      border-radius: 50%;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 40px 24px;
+      color: var(--text-secondary);
+      font-size: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .footer a { color: var(--accent); text-decoration: none; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .kpi-row { grid-template-columns: repeat(2, 1fr); }
+      .grid-2, .driver-grid { grid-template-columns: 1fr; }
+      .grid-3 { grid-template-columns: 1fr; }
+      .strategy-grid { grid-template-columns: repeat(2, 1fr); }
+      .hero h1 { font-size: 28px; }
+      .hero { padding: 40px 24px 36px; }
+    }
+    @media (max-width: 600px) {
+      .kpi-row { grid-template-columns: 1fr; }
+      .strategy-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Waterfall label */
+    .waterfall-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .waterfall-label .wl-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+    }
+
+    /* Animated entrance */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(16px);
+      animation: fadeUp .5s ease forwards;
+    }
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in:nth-child(2) { animation-delay: .05s; }
+    .fade-in:nth-child(3) { animation-delay: .1s; }
+    .fade-in:nth-child(4) { animation-delay: .15s; }
+  </style>
+</head>
+<body>
+
+<!-- =================== HERO =================== -->
+<div class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">EVP Review &bull; FY26</div>
+    <h1>Loss Performance & Target Variance</h1>
+    <p class="hero-subtitle">
+      Comprehensive view of Payments & Bill Pay loss trajectory, key variance drivers, and the mitigation roadmap to converge toward the 8.9 bps full-year target.
+    </p>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Mar YTD Expense Rate</span>
+        <span class="hero-meta-value">10.3 bps</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Full Year Target</span>
+        <span class="hero-meta-value">8.9 bps</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Current Variance</span>
+        <span class="hero-meta-value" style="color:#fca5a5;">+2.1 bps</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Bill Pay Mar YTD</span>
+        <span class="hero-meta-value" style="color:#86efac;">-1.2 bps</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- =================== METRICS SNAPSHOT =================== -->
+  <div class="section fade-in">
+    <div class="section-header">
+      <div class="section-icon blue">&#x1F4CA;</div>
+      <div>
+        <div class="section-title">Metrics Snapshot</div>
+        <div class="section-desc">Dec YTD vs. Mar YTD — Payments & Bill Pay</div>
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-label">Mar YTD Expense Rate</div>
+        <div class="kpi-value">10.3<span style="font-size:18px;font-weight:500;"> bps</span></div>
+        <div class="kpi-sub danger">&#x25B2; 0.2 from Dec YTD (10.1)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">ECL Adjusted</div>
+        <div class="kpi-value">9.9<span style="font-size:18px;font-weight:500;"> bps</span></div>
+        <div class="kpi-sub danger">&#x25B2; 0.1 from Dec YTD (9.8)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">YTD Target</div>
+        <div class="kpi-value">8.2<span style="font-size:18px;font-weight:500;"> bps</span></div>
+        <div class="kpi-sub muted">Full year target: 8.9 bps</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Variance (ITT)</div>
+        <div class="kpi-value" style="color:var(--danger);">+2.1<span style="font-size:18px;font-weight:500;"> bps</span></div>
+        <div class="kpi-sub danger">&#x25B2; 0.2 from Dec (+1.9)</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">&#x1F4B3; Payments Metrics</div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Period</th><th>Expense Rate</th><th>ECL Adjusted</th><th>Target</th><th>Variance</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Dec YTD</strong></td>
+              <td class="num">10.1 bps</td>
+              <td class="num">9.8 bps</td>
+              <td class="num">7.9 bps</td>
+              <td class="num highlight">+1.9 bps</td>
+            </tr>
+            <tr>
+              <td><strong>Mar YTD</strong></td>
+              <td class="num">10.3 bps</td>
+              <td class="num">9.9 bps</td>
+              <td class="num">8.2 bps</td>
+              <td class="num highlight">+2.1 bps</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title">&#x1F4E8; Bill Pay Metrics</div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Period</th><th>Expense Rate</th><th>Cohort Loss</th><th>Target</th><th>Variance</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Jan YTD</strong></td>
+              <td class="num">6.3 bps</td>
+              <td class="num">5.8 bps</td>
+              <td class="num">6.5 bps</td>
+              <td class="num good">-0.2 bps</td>
+            </tr>
+            <tr>
+              <td><strong>Mar YTD</strong></td>
+              <td class="num">6.9 bps</td>
+              <td class="num">6.8 bps</td>
+              <td class="num">7.7 bps</td>
+              <td class="num good">-1.2 bps</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="callout danger" style="margin-top:20px;">
+      <div class="callout-title">&#x26A0; Bill Pay Alert — April Losses</div>
+      <div class="callout-body">
+        April losses significantly elevated from fraud ATO pressure. Revenue was <strong>$3M</strong> while losses were <strong>$7.8M</strong>, creating a <strong>negative unit economics</strong> situation in Q3. This is the primary alarm signal.
+      </div>
+    </div>
+
+    <div class="notes-section" style="margin-top:16px;">
+      <div class="notes-title">Methodology Notes</div>
+      <ul>
+        <li>ECL is cohorted, Expense rate is non-cohorted — causes swings on a month/quarter basis. YTD basis smoothens variances; over longer durations the two metrics converge.</li>
+        <li>Small variances between ECL adjusted and Expense loss rates are due to different Large Loss treatment (100% reserve vs. cohort-level 8-12% gross-to-net forecasting).</li>
+        <li>Full year target is 8.9 bps; H2 expected higher than H1 due to seasonal fraud pressures.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- =================== CHARTS =================== -->
+  <div class="section fade-in">
+    <div class="section-header">
+      <div class="section-icon blue">&#x1F4C8;</div>
+      <div>
+        <div class="section-title">Visual Analysis</div>
+        <div class="section-desc">Variance breakdown and loss composition</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="chart-container">
+        <div class="chart-title">Payments: Expense Rate vs. Target</div>
+        <div id="chart-payments-comparison"></div>
+      </div>
+      <div class="chart-container">
+        <div class="chart-title">Variance Decomposition (bps)</div>
+        <div id="chart-waterfall"></div>
+      </div>
+    </div>
+    <div class="grid-2" style="margin-top:20px;">
+      <div class="chart-container">
+        <div class="chart-title">Loss Pressure Breakdown</div>
+        <div id="chart-donut"></div>
+      </div>
+      <div class="chart-container">
+        <div class="chart-title">Bill Pay: Revenue vs. Losses (April)</div>
+        <div id="chart-billpay-alert"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- =================== STRATEGIC CONTEXT =================== -->
+  <div class="section fade-in">
+    <div class="section-header">
+      <div class="section-icon blue">&#x1F9ED;</div>
+      <div>
+        <div class="section-title">Strategic Context & H2 Outlook</div>
+        <div class="section-desc">Why we're here and where we're headed</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">&#x1F504; Shift in Expectations</div>
+        <p style="font-size:14px;color:var(--text-secondary);line-height:1.7;">
+          FY26 target assumed a slow loss ramp in Q1/Q4. We <strong>strategically accelerated the Mid-Market rollout</strong> and customer benefit initiatives into H1, effectively inverting the planned ramp. This front-loaded investment drove growth but also amplified near-term loss exposure.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-title">&#x1F4C9; H2 Trajectory</div>
+        <p style="font-size:14px;color:var(--text-secondary);line-height:1.7;">
+          The team has integrated early learnings from the accelerated rollout. We are <strong>actively deploying targeted mitigation initiatives</strong> to pull back losses in H2 and drive the run-rate back down toward the <strong>8.9 bps Full Year Target</strong>.
+        </p>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:4px;">
+      <div class="callout-title">&#x1F3AF; The Three Macro Buckets</div>
+      <div class="callout-body">
+        <strong>1. Ecosystem Fraud</strong> — Account Takeover & Synthetic accounts across the Intuit ecosystem.<br>
+        <strong>2. Growth Push</strong> — Higher limits, new payment methods, and reduced insults across all products.<br>
+        <strong>3. Broken Experiences</strong> — Fixing friction points that cause massive customer churn, but temporarily elevate exposure.
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- =================== KEY DRIVERS =================== -->
+  <div class="section fade-in">
+    <div class="section-header">
+      <div class="section-icon red">&#x1F525;</div>
+      <div>
+        <div class="section-title">Key Drivers of Variance</div>
+        <div class="section-desc">Headwinds contributing to the +2.1 bps gap</div>
+      </div>
+    </div>
+
+    <div class="driver-grid">
+      <div class="driver-card">
+        <div class="driver-header">
+          <div>
+            <div class="driver-name">Large Loss Multiplier</div>
+            <div class="driver-period">Through FY26</div>
+          </div>
+          <div class="driver-impact">0.5 – 0.8 bps</div>
+        </div>
+        <div class="driver-desc">Early Mid-Market volume growth shifted our risk profile, creating a multiplier effect on Large Losses (primarily First Party Fraud), exacerbated by macroeconomic pressures on business cash flows.</div>
+      </div>
+      <div class="driver-card">
+        <div class="driver-header">
+          <div>
+            <div class="driver-name">Elevated Fraud Pressure</div>
+            <div class="driver-period">Through FY26</div>
+          </div>
+          <div class="driver-impact">0.2 – 0.5 bps</div>
+        </div>
+        <div class="driver-desc">Sustained elevation in broad-based fraud attacks impacting the portfolio early in the fiscal year.</div>
+      </div>
+      <div class="driver-card amber">
+        <div class="driver-header">
+          <div>
+            <div class="driver-name">Quick Auth Model Issue</div>
+            <div class="driver-period">Jan 26 – Mar 26</div>
+          </div>
+          <div class="driver-impact">~0.5 bps</div>
+        </div>
+        <div class="driver-desc">Implementation issues added significant pressure, driving an incremental <strong>+$2M/month</strong> in losses during the affected window.</div>
+      </div>
+      <div class="driver-card amber">
+        <div class="driver-header">
+          <div>
+            <div class="driver-name">Ops Capacity Initiative</div>
+            <div class="driver-period">Mar 26 onwards</div>
+          </div>
+          <div class="driver-impact">~0.1 bps</div>
+        </div>
+        <div class="driver-desc">Unplanned initiative to free up agent capacity and improve customer experience temporarily elevated loss performance. Agents focused on calls rather than case review.</div>
+      </div>
+    </div>
+
+    <div class="callout warning" style="margin-top:20px;">
+      <div class="callout-title">&#x1F6E0; Platform Stability Challenges</div>
+      <div class="callout-body">
+        Risk controls face stability issues including <strong>model deterioration</strong> and <strong>data gaps</strong> leading to additional losses. Operations capacity constraints mean agents focus on customer response & calls, unable to review cases in time to prevent losses.
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- =================== SHORT TERM OPTIONS =================== -->
+  <div class="section fade-in">
+    <div class="section-header">
+      <div class="section-icon amber">&#x26A1;</div>
+      <div>
+        <div class="section-title">Short-Term Mitigation Options</div>
+        <div class="section-desc">Business-led and risk-led levers with trade-off analysis</div>
+      </div>
+    </div>
+
+    <div class="callout warning" style="margin-bottom:24px;">
+      <div class="callout-title">&#x26A0; Revenue Constraint</div>
+      <div class="callout-body">
+        The business <strong>cannot afford major revenue hits</strong> as they are under forecast. Options involve a mix of accelerating planned work or cutting less profitable segments, each with revenue and customer churn implications.
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <div class="initiative-section">
+          <div class="initiative-label">&#x1F4B3; Payments — Business Decisions</div>
+          <table class="init-table">
+            <thead><tr><th>#</th><th>Initiative</th><th>Monthly Savings</th><th>Impact</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>Onboarding 2.0 Ramp<br><span class="tag tag-blue">June → May</span></td>
+                <td class="savings">$0.6M</td>
+                <td><span class="tag tag-green">No Impact</span></td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>Shutdown Banking Second Entitlement</td>
+                <td class="savings">$1.0M</td>
+                <td>Revenue: -$100K<br>Churn: 100</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>Payments ATO Liability</td>
+                <td class="savings">$1.0M</td>
+                <td>15 OOPs/mo<br>Churn: 80<br>Revenue: -$80K</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="initiative-section">
+          <div class="initiative-label">&#x1F4B3; Payments — Risk Decisions</div>
+          <table class="init-table">
+            <thead><tr><th>#</th><th>Initiative</th><th>Monthly Savings</th><th>Impact</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>Reduce Limits for High Financial Risk & Funding Review</td>
+                <td class="savings">$0.4M</td>
+                <td>Churn: 60<br>Revenue: -$40K</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>Payment C2</td>
+                <td class="savings">$0.4M</td>
+                <td>Churn: 80<br>Revenue: -$80K</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <div class="initiative-section">
+          <div class="initiative-label">&#x1F4E8; Bill Pay — Business Decisions</div>
+          <table class="init-table">
+            <thead><tr><th>#</th><th>Initiative</th><th>Monthly Savings</th><th>Impact</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>Reduce Eligibility for Faster Payments</td>
+                <td class="savings">$0.6M</td>
+                <td><span class="tag tag-gray">TBD</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="initiative-section">
+          <div class="initiative-label">&#x1F4E8; Bill Pay — Risk Decisions</div>
+          <table class="init-table">
+            <thead><tr><th>#</th><th>Initiative</th><th>Monthly Savings</th><th>Impact</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>Billpay Transaction CRIMSON & Passkey</td>
+                <td class="savings">$0.6M</td>
+                <td><span class="tag tag-gray">TBD</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Totals card -->
+        <div class="card" style="margin-top:16px;background:linear-gradient(135deg,#ecfdf5,#d1fae5);border-color:#a7f3d0;">
+          <div class="card-title" style="color:#065f46;">&#x1F4B0; Total Monthly Savings Potential</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#047857;font-weight:600;">Payments</div>
+              <div style="font-size:28px;font-weight:800;color:#065f46;">$3.4M<span style="font-size:14px;font-weight:500;">/mo</span></div>
+            </div>
+            <div>
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#047857;font-weight:600;">Bill Pay</div>
+              <div style="font-size:28px;font-weight:800;color:#065f46;">$1.2M<span style="font-size:14px;font-weight:500;">/mo</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- =================== CHART: Monthly Savings Breakdown =================== -->
+  <div class="section fade-in">
+    <div class="section-header">
+      <div class="section-icon green">&#x1F4B5;</div>
+      <div>
+        <div class="section-title">Savings Opportunity Map</div>
+        <div class="section-desc">Monthly loss reduction potential by initiative</div>
+      </div>
+    </div>
+    <div class="chart-container">
+      <div id="chart-initiatives"></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- =================== FY27 STRATEGY =================== -->
+  <div class="section fade-in">
+    <div class="section-header">
+      <div class="section-icon green">&#x1F680;</div>
+      <div>
+        <div class="section-title">FY27 Strategic Initiatives</div>
+        <div class="section-desc">Surgical solutions to unwind short-term fixes</div>
+      </div>
+    </div>
+
+    <div class="strategy-grid">
+      <div class="strategy-card">
+        <div class="s-icon">&#x1F6E1;</div>
+        <div class="s-title">ATO Controls & Remediation</div>
+        <div class="s-desc">Continue building out Account Takeover controls and remediation from FY26 into FY27</div>
+      </div>
+      <div class="strategy-card">
+        <div class="s-icon">&#x1F916;</div>
+        <div class="s-title">AI Fraud Ring Detection</div>
+        <div class="s-desc">Enhance AI-powered fraud ring controls using new vendor intelligence sources</div>
+      </div>
+      <div class="strategy-card">
+        <div class="s-icon">&#x1F50D;</div>
+        <div class="s-title">Smart C2 Assessments</div>
+        <div class="s-desc">Enhance AI transaction monitoring by introducing intelligent C2 challenge assessments</div>
+      </div>
+      <div class="strategy-card">
+        <div class="s-icon">&#x1F3E6;</div>
+        <div class="s-title">Mid-Market Risk Mitigation</div>
+        <div class="s-desc">New merchant monitoring data and reserves concept to mitigate large losses from risky customers & industries</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  FY26 Loss Performance & Target Variance &mdash; Confidential EVP Review<br>
+  Generated May 2026
+</div>
+
+<!-- =================== CHARTS =================== -->
+<script>
+const colors = {
+  primary: '#4f46e5',
+  primaryLight: '#818cf8',
+  danger: '#ef4444',
+  dangerLight: '#fca5a5',
+  warning: '#f59e0b',
+  success: '#10b981',
+  gray: '#94a3b8',
+  blue: '#3b82f6',
+  indigo: '#6366f1'
+};
+
+// Chart 1: Payments comparison grouped bar
+Plotly.newPlot('chart-payments-comparison', [
+  {
+    name: 'Expense Rate',
+    x: ['Dec YTD', 'Mar YTD'],
+    y: [10.1, 10.3],
+    type: 'bar',
+    marker: { color: colors.primary, cornerradius: 4 },
+    text: ['10.1 bps', '10.3 bps'],
+    textposition: 'outside',
+    textfont: { size: 12, weight: 700 }
+  },
+  {
+    name: 'ECL Adjusted',
+    x: ['Dec YTD', 'Mar YTD'],
+    y: [9.8, 9.9],
+    type: 'bar',
+    marker: { color: colors.primaryLight, cornerradius: 4 },
+    text: ['9.8 bps', '9.9 bps'],
+    textposition: 'outside',
+    textfont: { size: 12, weight: 700 }
+  },
+  {
+    name: 'Target',
+    x: ['Dec YTD', 'Mar YTD'],
+    y: [7.9, 8.2],
+    type: 'bar',
+    marker: { color: colors.success, cornerradius: 4 },
+    text: ['7.9 bps', '8.2 bps'],
+    textposition: 'outside',
+    textfont: { size: 12, weight: 700 }
+  }
+], {
+  barmode: 'group',
+  height: 300,
+  margin: { t: 20, b: 40, l: 40, r: 20 },
+  plot_bgcolor: 'rgba(0,0,0,0)',
+  paper_bgcolor: 'rgba(0,0,0,0)',
+  font: { family: 'Inter, sans-serif', size: 12 },
+  yaxis: { title: 'bps', gridcolor: '#f1f5f9', range: [0, 12] },
+  legend: { orientation: 'h', y: -0.15, x: 0.5, xanchor: 'center' },
+  shapes: [{
+    type: 'line', x0: -0.5, x1: 1.5, y0: 8.9, y1: 8.9,
+    line: { color: colors.danger, width: 2, dash: 'dash' }
+  }],
+  annotations: [{
+    x: 1.5, y: 8.9, text: 'FY Target: 8.9', showarrow: false,
+    xanchor: 'left', font: { color: colors.danger, size: 11, weight: 700 }
+  }]
+}, { displayModeBar: false, responsive: true });
+
+// Chart 2: Waterfall / variance decomposition
+var waterfallData = {
+  x: ['Target', 'Fraud<br>Pressure', 'Mid-Market<br>Growth', 'System<br>Issues', 'Ops<br>Issues', 'Actual'],
+  y: [8.2, 0.5, 0.8, 0.6, 0.4, 0],
+  type: 'waterfall',
+  orientation: 'v',
+  connector: { line: { color: '#e2e8f0', width: 1 } },
+  measure: ['absolute', 'relative', 'relative', 'relative', 'relative', 'total'],
+  textposition: 'outside',
+  text: ['8.2', '+0.5', '+0.8', '+0.6', '+0.4', '10.5'],
+  textfont: { size: 12, weight: 700 },
+  increasing: { marker: { color: colors.danger, line: { color: colors.danger, width: 0 } } },
+  totals: { marker: { color: colors.primary, line: { color: colors.primary, width: 0 } } },
+  decreasing: { marker: { color: colors.success } }
+};
+
+Plotly.newPlot('chart-waterfall', [waterfallData], {
+  height: 300,
+  margin: { t: 20, b: 60, l: 40, r: 20 },
+  plot_bgcolor: 'rgba(0,0,0,0)',
+  paper_bgcolor: 'rgba(0,0,0,0)',
+  font: { family: 'Inter, sans-serif', size: 11 },
+  yaxis: { title: 'bps', gridcolor: '#f1f5f9', range: [0, 12] },
+  showlegend: false
+}, { displayModeBar: false, responsive: true });
+
+// Chart 3: Donut — loss pressure breakdown
+Plotly.newPlot('chart-donut', [{
+  labels: ['Fraud Pressure', 'Mid-Market Growth', 'System Issues', 'Ops Issues'],
+  values: [0.5, 0.8, 0.6, 0.4],
+  type: 'pie',
+  hole: 0.6,
+  marker: {
+    colors: [colors.danger, colors.warning, colors.indigo, colors.gray],
+    line: { color: '#fff', width: 2 }
+  },
+  textinfo: 'label+percent',
+  textposition: 'outside',
+  textfont: { size: 11 },
+  pull: [0.03, 0.03, 0.03, 0.03]
+}], {
+  height: 300,
+  margin: { t: 10, b: 10, l: 10, r: 10 },
+  paper_bgcolor: 'rgba(0,0,0,0)',
+  showlegend: false,
+  annotations: [{
+    text: '<b>2.3</b><br>bps total',
+    x: 0.5, y: 0.5, showarrow: false,
+    font: { size: 18, family: 'Inter, sans-serif', color: '#1e293b' }
+  }]
+}, { displayModeBar: false, responsive: true });
+
+// Chart 4: Bill Pay Revenue vs Losses (April)
+Plotly.newPlot('chart-billpay-alert', [
+  {
+    x: ['April'],
+    y: [3],
+    name: 'Revenue',
+    type: 'bar',
+    marker: { color: colors.success, cornerradius: 4 },
+    text: ['$3M'],
+    textposition: 'outside',
+    textfont: { size: 14, weight: 700 }
+  },
+  {
+    x: ['April'],
+    y: [7.8],
+    name: 'Losses',
+    type: 'bar',
+    marker: { color: colors.danger, cornerradius: 4 },
+    text: ['$7.8M'],
+    textposition: 'outside',
+    textfont: { size: 14, weight: 700 }
+  }
+], {
+  barmode: 'group',
+  height: 300,
+  margin: { t: 20, b: 40, l: 40, r: 20 },
+  plot_bgcolor: 'rgba(0,0,0,0)',
+  paper_bgcolor: 'rgba(0,0,0,0)',
+  font: { family: 'Inter, sans-serif', size: 12 },
+  yaxis: { title: '$M', gridcolor: '#f1f5f9', range: [0, 10] },
+  legend: { orientation: 'h', y: -0.15, x: 0.5, xanchor: 'center' },
+  annotations: [{
+    x: 'April', y: 9.5, text: '<b>-$4.8M Net</b><br>Negative Unit Economics',
+    showarrow: false, font: { color: colors.danger, size: 13 },
+    bgcolor: '#fef2f2', bordercolor: '#fca5a5', borderwidth: 1, borderpad: 6
+  }]
+}, { displayModeBar: false, responsive: true });
+
+// Chart 5: Initiatives savings horizontal bar
+Plotly.newPlot('chart-initiatives', [{
+  y: [
+    'Billpay CRIMSON & Passkey',
+    'Reduce Faster Payments Eligibility',
+    'Payment C2',
+    'Reduce Limits (High Risk)',
+    'Onboarding 2.0 Ramp',
+    'Payments ATO Liability',
+    'Shutdown Banking 2nd Entitlement'
+  ],
+  x: [0.6, 0.6, 0.4, 0.4, 0.6, 1.0, 1.0],
+  type: 'bar',
+  orientation: 'h',
+  marker: {
+    color: [
+      colors.primaryLight, colors.primaryLight,
+      colors.warning, colors.warning,
+      colors.success, colors.success, colors.success
+    ],
+    cornerradius: 4
+  },
+  text: ['$0.6M', '$0.6M', '$0.4M', '$0.4M', '$0.6M', '$1.0M', '$1.0M'],
+  textposition: 'outside',
+  textfont: { size: 12, weight: 700 }
+}], {
+  height: 320,
+  margin: { t: 10, b: 30, l: 230, r: 60 },
+  plot_bgcolor: 'rgba(0,0,0,0)',
+  paper_bgcolor: 'rgba(0,0,0,0)',
+  font: { family: 'Inter, sans-serif', size: 12 },
+  xaxis: { title: 'Monthly Savings ($M)', gridcolor: '#f1f5f9', range: [0, 1.3] },
+  yaxis: { automargin: true },
+  showlegend: false
+}, { displayModeBar: false, responsive: true });
+
+// Intersection Observer for fade-in
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.style.animationPlayState = 'running';
+    }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => {
+  el.style.animationPlayState = 'paused';
+  observer.observe(el);
+});
+</script>
+
+</body>
+</html>
